@@ -5,10 +5,10 @@
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
         <h1>Upload images</h1>
         <div class="dropbox">
-          <input type="file" multiple :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
+          <input type="file" :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
             accept="image/*" class="input-file">
             <p v-if="isInitial">
-              Drag your file(s) here to begin<br> or click to browse
+              Arrastra el arte de la tarjeta aquí<br> o da click para navegar
             </p>
             <p v-if="isSaving">
               Uploading {{ fileCount }} files...
@@ -22,8 +22,11 @@
           <a href="javascript:void(0)" @click="reset()">Upload again</a>
         </p>
         <ul class="list-unstyled">
-          <li v-for="item in uploadedFiles">
-            <img :src="item.url" class="img-responsive img-thumbnail" :alt="item.originalName">
+          <li v-for="item in uploadedFiles" :key="item.id">
+            <pre>
+              {{item}}
+            </pre>
+            <img :src="item.imgData" class="img-responsive img-thumbnail" :alt="item.imageType">
           </li>
         </ul>
       </div>
@@ -41,8 +44,10 @@
 
 <script>
   // swap as you need
-  import { upload } from './file-upload.fake.service'; // fake service
+  //import { upload } from './file-upload.fake.service'; // fake service
+  import { upload } from './file-upload.convert.service'; // fake service
   // import { upload } from './file-upload.service';   // real service
+
   import { wait } from './utils';
 
   const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
@@ -54,7 +59,7 @@
         uploadedFiles: [],
         uploadError: null,
         currentStatus: null,
-        uploadFieldName: 'photos'
+        uploadFieldName: 'cardArt'
       }
     },
     computed: {
@@ -81,15 +86,18 @@
       save(formData) {
         // upload data to the server
         this.currentStatus = STATUS_SAVING;
-        const url = `${BASE_URL}/photos/upload`;
+        //const url = `${BASE_URL}/photos/upload`;
 
         upload(formData)
-          .then(wait(1500)) // DEV ONLY: wait for 1.5s 
+          .then(wait(1900)) // DEV ONLY: wait for 1.5s 
           .then(x => {
+            console.log(x)
             this.uploadedFiles = [].concat(x);
+            //this.uploadedFiles = x;
             this.currentStatus = STATUS_SUCCESS;
           })
           .catch(err => {
+            console.log(err)
             this.uploadError = err.response;
             this.currentStatus = STATUS_FAILED;
           });

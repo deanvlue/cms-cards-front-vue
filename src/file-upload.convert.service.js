@@ -1,5 +1,6 @@
-function upload(formData) {
-    const photos = formData.getAll('photos');
+// file-upload.convert.service.js
+function uploadT(formData) {
+    const photos = formData.getAll('cardArt');
     // debe de traer solo una imagen
     const promises = photos.map((x) => getImage(x)
         .then(img => ({
@@ -9,6 +10,13 @@ function upload(formData) {
             url: img
         })));
     return Promise.all(promises);
+}
+
+
+function upload(formData) {
+    const cardArt = formData.get('cardArt');
+
+    return getImages(cardArt);
 }
 
 function getImage(file) {
@@ -25,8 +33,44 @@ function getImage(file) {
     })
 }
 
-function getBase64Image(img) {
+function getImages(file){
+    return new Promise((resolve, reject) => {
+        const fReader = new FileReader();
+        const img = document.createElement('img');
+
+        fReader.onload = () => {
+            img.src = fReader.result;
+            //console.log(img.src);
+            resolve(getBase64Images(img));
+
+        }
+
+        fReader.readAsDataURL(file);
+    })
+}
+
+function getBase64Image(img, width, height) {
     const canvas = document.createElement('canvas');
+   
+
+    canvas.width = img.width;
+    //canvas.height = newSize.width;
+    canvas.height = img.height;
+    //canvas.height = newSize.height;
+
+    const ctx = canvas.getContext('2d');
+    //ctx.scale(5,5);
+    //ctx.drawImage(img, 0, 0, newSize.width, newSize.height);
+    ctx.drawImage(img, 0, 0);
+
+    const dataURL = canvas.toDataURL('image/png');
+    //console.log(dataURL);
+    //dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+
+    return dataURL;
+}
+
+function getBase64Images(img) {
 
     const imageSizes =[
         { imageType: "androidThumbXxhdpi", width:231, height:  165},
@@ -48,24 +92,34 @@ function getBase64Image(img) {
         { imageType: "ImageIcon", width:88, height:  55},        
     ]
 
-    const newSize ={
-        width: 231,
-        height: 156
-    }
-    //canvas.width = img.width;
-    canvas.height = newSize.width;
-    //canvas.width = img.width;
-    canvas.height = newSize.height;
 
-    const ctx = canvas.getContext('2d');
-    //ctx.scale(5,5);
-    ctx.drawImage(img, 0, 0, newSize.width, newSize.height);
+    return resizeImage(imageSizes, img);
 
-    const dataURL = canvas.toDataURL('image/png');
-    //console.log(dataURL);
-    //dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
 
-    return dataURL;
+    //return images;
+}
+
+function resizeImage(sizes, img){
+
+    let images=[];
+    const canvas = document.createElement('canvas');
+
+    sizes.map(s=>{
+         
+        let image={}
+        
+        canvas.height = s.height
+        canvas.width = s.width
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, s.width,  s.height);
+        const dataURL = canvas.toDataURL('image/png');
+        image.imageType = s.imageType
+        image.imgData =dataURL
+        images.push(image)
+    })
+
+    return images;
+
 }
 
 export { upload }
