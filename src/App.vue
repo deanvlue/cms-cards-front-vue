@@ -91,13 +91,13 @@
         upload(formData)
           .then(wait(1900)) // DEV ONLY: wait for 1.5s 
           .then(x => {
-            console.log(x)
+            //console.log(x)
             this.uploadedFiles = [].concat(x);
             //this.uploadedFiles = x;
             this.currentStatus = STATUS_SUCCESS;
           })
           .catch(err => {
-            console.log(err)
+            //console.log(err)
             this.uploadError = err.response;
             this.currentStatus = STATUS_FAILED;
           });
