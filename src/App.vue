@@ -2,19 +2,56 @@
   <div id="app">
     <div class="container">
       <!--UPLOAD-->
-      <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
-        <h1>Upload images</h1>
-        <div class="dropbox">
-          <input type="file" :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
-            accept="image/*" class="input-file">
-            <p v-if="isInitial">
-              Arrastra el arte de la tarjeta aquí<br> o da click para navegar
-            </p>
-            <p v-if="isSaving">
-              Uploading {{ fileCount }} files...
-            </p>
-        </div>
+    
+          <form enctype="multipart/form-data" novalidate  v-if="isInitial || isSaving" v-on:submit="validateForm">
+            <h1>Starbucks Card Art Uploader</h1>
+            <div class="row">
+              <div class="col-md-2 col-md-offset2"></div>
+              <div class="col-md-6">  
+                <div class="dropbox">
+                  <input type="file" :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
+                accept="image/*" class="input-file">
+                  <p v-if="isInitial">
+                  Arrastra el arte de la tarjeta aquí<br> o da click para navegar
+                  </p>
+                  <p v-if="isSaving">
+                    Uploading {{ fileCount }} files...
+                  </p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="profile">
+                  <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingInicialBin && wrongInicialBinFormat}">
+                    <label for="inicialBin" class="form-control-label">Bin Inicial: </label>
+                      <input v-model="cardConfiguration.inicialBin" class="form-control form-control-warning" type="text" :name="inicialBin">
+                    <div class="form-control-feedback" v-if="attemptSubmit && missingInicialBin">Este campo es requerido.</div>
+                    <div class="form-control-feedback" v-if="attemptSubmit && wrongInicialBinFormat">Formato de BIN incorrecto.</div>
+                  </div>
+                  <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingFinalBin && wrongInicialBinFormat}">
+                     <label for="finalBin" class="form-control-label">Bin Final: </label>
+                       <input v-model="cardConfiguration.finalBin" class="form-control form-control-warning" type="text" :name="finalBin">
+                     <div class="form-control-feedback" v-if="attemptSubmit && missingFinalBin">Este campo es requerido.</div>
+                     <div class="form-control-feedback" v-if="attemptSubmit && wrongFinalBinFormat">Formato de BIN incorrecto.</div>
+                  </div>
+                  <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingPromo}">
+                    <label for="promo">Promo: </label>
+                      <input class="form-control form-control-warning" v-model="cardConfiguration.promo" type="text" :name="promo">
+                    <div class="form-control-feedback" v-if="attemptSubmit && missingPromo">Este campo es requerido.</div>
+                  </div>
+               
+                  <div class="form-group">
+                    <button class="btn btn-primary">Guardar</button>
+                    <button class="btn btn-danger">Cancelar</button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
       </form>
+
+    </div>
+
+
       <!--SUCCESS-->
       <div v-if="isSuccess">
         <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
@@ -59,7 +96,15 @@
         uploadedFiles: [],
         uploadError: null,
         currentStatus: null,
-        uploadFieldName: 'cardArt'
+        uploadFieldName: 'cardArt',
+        cardConfiguration:{
+          inicialBin:null,
+          finalBin: null,
+          promo: null,
+          images:[]
+        },
+        attemptSubmit: false
+
       }
     },
     computed: {
@@ -74,7 +119,29 @@
       },
       isFailed() {
         return this.currentStatus === STATUS_FAILED;
+      },
+      missingInicialBin(){
+        return this.cardConfiguration.inicialBin === '';
+      },
+      missingFinalBin(){
+        return this.cardConfiguration.finalBin ==='';
+      },
+      missingPromo(){
+        return this.cardConfiguration.promo === '';
+      },
+      wrongInicialBinFormat(){
+        return (
+          this.isBin(this.cardConfiguration.inicialBin) === false ||
+          this.cardConfiguration.inicialBin < 1
+        )
+      },
+      wrongFinalBinFormat(){
+        return (
+          this.isBin(this.cardConfiguration.finalBin) === false ||
+          this.cardConfiguration.inicialBin < 1
+        )
       }
+
     },
     methods: {
       reset() {
@@ -82,6 +149,9 @@
         this.currentStatus = STATUS_INITIAL;
         this.uploadedFiles = [];
         this.uploadError = null;
+        this.attemptSubmit= false;
+        //this.cardConfiguration=null;
+
       },
       save(formData) {
         // upload data to the server
@@ -117,6 +187,14 @@
 
         // save it
         this.save(formData);
+      },
+      isBin(n){
+        const rgx=/[0-9]{16}/g
+        return rgx.test(n)
+      },
+      validateForm(event){
+        this.attemptSubmit = true;
+        if(this.missingInicialBin || this.missingFinalBin || this.missingPromo || this.wrongInicialBinFormat || this.wrongFinalBinFormat) event.preventDefault();
       }
     },
     mounted() {
