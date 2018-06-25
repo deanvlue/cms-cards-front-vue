@@ -165,6 +165,7 @@
             this.uploadedFiles = [].concat(x);
             //this.uploadedFiles = x;
             this.currentStatus = STATUS_SUCCESS;
+
           })
           .catch(err => {
             //console.log(err)

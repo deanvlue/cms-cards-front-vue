@@ -16,7 +16,6 @@ function uploadT(formData) {
 }
 
 
-
 function getImage(file) {
     return new Promise((resolve, reject) => {
         const fReader = new FileReader();
@@ -31,21 +30,7 @@ function getImage(file) {
     })
 }
 
-function getImages(file){
-    return new Promise((resolve, reject) => {
-        const fReader = new FileReader();
-        const img = document.createElement('img');
 
-        fReader.onload = () => {
-            img.src = fReader.result;
-            //console.log(img.src);
-            resolve(getBase64Images(img));
-
-        }
-
-        fReader.readAsDataURL(file);
-    })
-}
 
 function getBase64Image(img, width, height) {
     const canvas = document.createElement('canvas');
@@ -68,7 +53,33 @@ function getBase64Image(img, width, height) {
     return dataURL;
 }
 
-function getBase64Images(img) {
+function resizeImage(sizes, img, name){
+
+    let images=[];
+    const canvas = document.createElement('canvas');
+
+    const filename = name.split(".")
+
+    sizes.map(s=>{
+         
+        let image={}
+        
+        canvas.height = s.height
+        canvas.width = s.width
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, s.width,  s.height);
+        const dataURL = canvas.toDataURL('image/png');
+        image.imageType = s.imageType;
+        image.imgData = dataURL;
+        image.imgName = filename[0]+"_"+s.imageType+"."+filename[1];
+        //console.log(name);
+        images.push(image);
+    })
+
+    return images;
+
+}
+function getBase64Images(img, name) {
 
     const imageSizes =[
         { imageType: "androidThumbXxhdpi", width:231, height:  165},
@@ -88,42 +99,35 @@ function getBase64Images(img) {
         { imageType: "ImageMedium", width:165, height:  104},
         { imageType: "ImageSmall", width:115, height:  72},
         { imageType: "ImageIcon", width:88, height:  55},        
-    ]
+    ];
+
+    //console.log(name);
 
 
-    return resizeImage(imageSizes, img);
+    return resizeImage(imageSizes, img, name);
 
 
     //return images;
 }
 
-function resizeImage(sizes, img){
+function getImages(file){
+    return new Promise((resolve, reject) => {
+        const fReader = new FileReader();
+        const img = document.createElement('img');
 
-    let images=[];
-    const canvas = document.createElement('canvas');
+        fReader.onload = () => {
+            img.src = fReader.result;
+            //console.log(img.src);
+            resolve(getBase64Images(img, file.name));
 
-    sizes.map(s=>{
-         
-        let image={}
-        
-        canvas.height = s.height
-        canvas.width = s.width
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, s.width,  s.height);
-        const dataURL = canvas.toDataURL('image/png');
-        image.imageType = s.imageType
-        image.imgData =dataURL
-        images.push(image)
-    })
+        }
 
-    return images;
-
+        fReader.readAsDataURL(file);
+    });
 }
 
 function upload(formData) {
     const cardArt = formData.get('cardArt');
-
-    //console.log(cardArt)
 
     return getImages(cardArt);
 }
