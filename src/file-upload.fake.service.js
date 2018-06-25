@@ -1,3 +1,5 @@
+'use strict'
+
 function upload(formData) {
     const photos = formData.getAll('photos');
     // debe de traer solo una imagen

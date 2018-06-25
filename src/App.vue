@@ -23,13 +23,13 @@
                 <div class="profile">
                   <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingInicialBin && wrongInicialBinFormat}">
                     <label for="inicialBin" class="form-control-label">Bin Inicial: </label>
-                      <input v-model="cardConfiguration.inicialBin" class="form-control form-control-warning" type="text" :name="inicialBin">
+                      <input v-model="cardConfiguration.inicialBin" class="form-control form-control-warning" type="text" name="inicialBin" @blur="onBlur" ref="inicialBin"/>
                     <div class="form-control-feedback" v-if="attemptSubmit && missingInicialBin">Este campo es requerido.</div>
                     <div class="form-control-feedback" v-if="attemptSubmit && wrongInicialBinFormat">Formato de BIN incorrecto.</div>
                   </div>
                   <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingFinalBin && wrongInicialBinFormat}">
                      <label for="finalBin" class="form-control-label">Bin Final: </label>
-                       <input v-model="cardConfiguration.finalBin" class="form-control form-control-warning" type="text" :name="finalBin">
+                       <input v-model="cardConfiguration.finalBin" class="form-control form-control-warning" type="text" name="finalBin" @blur="onBlur" ref="inicialBin"/>
                      <div class="form-control-feedback" v-if="attemptSubmit && missingFinalBin">Este campo es requerido.</div>
                      <div class="form-control-feedback" v-if="attemptSubmit && wrongFinalBinFormat">Formato de BIN incorrecto.</div>
                   </div>
@@ -76,7 +76,7 @@
         <pre>{{ uploadError }}</pre>
       </div>
     </div>
-  </div>
+  <!--</div>-->
 </template>
 
 <script>
@@ -195,6 +195,22 @@
       validateForm(event){
         this.attemptSubmit = true;
         if(this.missingInicialBin || this.missingFinalBin || this.missingPromo || this.wrongInicialBinFormat || this.wrongFinalBinFormat) event.preventDefault();
+      },
+      onBlur(event){
+        if(event.target.name === 'inicialBin'){
+          if(this.cardConfiguration.inicialBin ==='' || this.missingInicialBin || this.wrongInicialBinFormat){
+            event.preventDefault()
+            this.$refs.inicialBin.focus()
+            console.log(event)
+          }
+        }else if(event.target.name === 'finalBin'){
+          if(this.cardConfiguration.finalBin ==='' || this.missingFinalBin || this.wrongFinalBinFormat){
+          event.preventDefault()
+          this.$refs.finalBin.focus()
+          }
+        }
+        
+          
       }
     },
     mounted() {

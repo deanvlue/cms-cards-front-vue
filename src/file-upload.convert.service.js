@@ -1,4 +1,7 @@
 // file-upload.convert.service.js
+
+'use strict';
+
 function uploadT(formData) {
     const photos = formData.getAll('cardArt');
     // debe de traer solo una imagen
@@ -13,11 +16,6 @@ function uploadT(formData) {
 }
 
 
-function upload(formData) {
-    const cardArt = formData.get('cardArt');
-
-    return getImages(cardArt);
-}
 
 function getImage(file) {
     return new Promise((resolve, reject) => {
@@ -122,5 +120,12 @@ function resizeImage(sizes, img){
 
 }
 
+function upload(formData) {
+    const cardArt = formData.get('cardArt');
+
+    //console.log(cardArt)
+
+    return getImages(cardArt);
+}
 export { upload }
 
