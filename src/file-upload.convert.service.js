@@ -71,7 +71,7 @@ function resizeImage(sizes, img, name){
         const dataURL = canvas.toDataURL('image/png');
         image.imageType = s.imageType;
         image.imgData = dataURL;
-        image.imgName = filename[0]+"_"+s.imageType+"."+filename[1];
+        image.imgName = filename[0]+"_"+s.imageType+"."+filename[1]; // se agrega el nombre del archivo que contendrá la imagen
         //console.log(name);
         images.push(image);
     })

@@ -23,19 +23,19 @@
                 <div class="profile">
                   <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingInicialBin && wrongInicialBinFormat}">
                     <label for="inicialBin" class="form-control-label">Bin Inicial: </label>
-                      <input v-model="cardConfiguration.inicialBin" class="form-control form-control-warning" type="text" name="inicialBin" @blur="onBlur" ref="inicialBin"/>
+                      <input v-validate="'required|numeric'" v-model="cardConfiguration.inicialBin" class="form-control form-control-warning" type="text" name="inicialBin" @blur="onBlur" ref="inicialBin"/>
                     <div class="form-control-feedback" v-if="attemptSubmit && missingInicialBin">Este campo es requerido.</div>
                     <div class="form-control-feedback" v-if="attemptSubmit && wrongInicialBinFormat">Formato de BIN incorrecto.</div>
                   </div>
                   <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingFinalBin && wrongInicialBinFormat}">
                      <label for="finalBin" class="form-control-label">Bin Final: </label>
-                       <input v-model="cardConfiguration.finalBin" class="form-control form-control-warning" type="text" name="finalBin" @blur="onBlur" ref="inicialBin"/>
+                       <input v-model="cardConfiguration.finalBin" class="form-control form-control-warning" type="text" name="finalBin" @blur="onBlur" ref="finalBin"/>
                      <div class="form-control-feedback" v-if="attemptSubmit && missingFinalBin">Este campo es requerido.</div>
                      <div class="form-control-feedback" v-if="attemptSubmit && wrongFinalBinFormat">Formato de BIN incorrecto.</div>
                   </div>
-                  <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingPromo}">
+                  <div class="form-group" v-bind:class="{'has-warning': attemptSubmit && missingPromo}" >
                     <label for="promo">Promo: </label>
-                      <input class="form-control form-control-warning" v-model="cardConfiguration.promo" type="text" :name="promo">
+                      <input class="form-control form-control-warning" v-model="cardConfiguration.promo" type="text" :name="promo" ref="promo">
                     <div class="form-control-feedback" v-if="attemptSubmit && missingPromo">Este campo es requerido.</div>
                   </div>
                
@@ -46,6 +46,14 @@
 
                 </div>
               </div>
+              <pre>
+                {{cardConfiguration}}<br>
+                {{missingInicialBin}}<br>
+                {{missingFinalBin}}<br>
+                {{missingPromo}}
+               Wrong Bin: {{wrongInicialBinFormat}}
+              
+              </pre>
             </div>
       </form>
 
@@ -58,14 +66,17 @@
         <p>
           <a href="javascript:void(0)" @click="reset()">Upload again</a>
         </p>
-        <ul class="list-unstyled">
+        <pre>
+          {{ cardConfiguration }}
+        </pre>
+       <!-- <ul class="list-unstyled">
           <li v-for="item in uploadedFiles" :key="item.id">
             <pre>
               {{item}}
             </pre>
             <img :src="item.imgData" class="img-responsive img-thumbnail" :alt="item.imageType">
           </li>
-        </ul>
+        </ul>-->
       </div>
       <!--FAILED-->
       <div v-if="isFailed">
@@ -87,7 +98,21 @@
 
   import { wait } from './utils';
 
+  import {Validator} from 'vee-validate';
+
   const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
+
+  Validator.extend('isBinCard',{
+    getMessage: field => 'No es un BIN válido',
+    validate: n=>{
+      const rgx=/[0-9]{16}/g
+      return rgx.test(n)
+    }
+  });
+
+
+  let instance = new Validator({trueField: 'isBinCard'});
+
 
   export default {
     name: 'app',
@@ -97,6 +122,7 @@
         uploadError: null,
         currentStatus: null,
         uploadFieldName: 'cardArt',
+        promo:'',
         cardConfiguration:{
           inicialBin:null,
           finalBin: null,
@@ -121,13 +147,13 @@
         return this.currentStatus === STATUS_FAILED;
       },
       missingInicialBin(){
-        return this.cardConfiguration.inicialBin === '';
+        return this.cardConfiguration.inicialBin === null;
       },
       missingFinalBin(){
-        return this.cardConfiguration.finalBin ==='';
+        return this.cardConfiguration.finalBin === null;
       },
       missingPromo(){
-        return this.cardConfiguration.promo === '';
+        return this.cardConfiguration.promo === null;
       },
       wrongInicialBinFormat(){
         return (
@@ -164,8 +190,9 @@
             //console.log(x)
             this.uploadedFiles = [].concat(x);
             //this.uploadedFiles = x;
+            this.cardConfiguration.images = this.uploadedFiles;
             this.currentStatus = STATUS_SUCCESS;
-
+            
           })
           .catch(err => {
             //console.log(err)
@@ -187,7 +214,9 @@
           });
 
         // save it
-        this.save(formData);
+        if(!this.missingInicialBin && this.missingFinalBin===false && this.missingPromo=== false){
+          this.save(formData);
+        }
       },
       isBin(n){
         const rgx=/[0-9]{16}/g
@@ -199,13 +228,13 @@
       },
       onBlur(event){
         if(event.target.name === 'inicialBin'){
-          if(this.cardConfiguration.inicialBin ==='' || this.missingInicialBin || this.wrongInicialBinFormat){
+          if(this.missingInicialBin || this.wrongInicialBinFormat){
             event.preventDefault()
-            this.$refs.inicialBin.focus()
+            //this.$refs.inicialBin.focus()
             console.log(event)
           }
         }else if(event.target.name === 'finalBin'){
-          if(this.cardConfiguration.finalBin ==='' || this.missingFinalBin || this.wrongFinalBinFormat){
+          if(this.missingFinalBin || this.wrongFinalBinFormat){
           event.preventDefault()
           this.$refs.finalBin.focus()
           }
